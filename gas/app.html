@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minishop - Demo UI (Commented Edition)</title>
+  
+  <!-- ==========================================
+       [1] CSS FRAMEWORKS & STYLES 
+       ========================================== -->
+  <!-- Bootstrap 5 CSS: ใช้ควบคุม Layout และการจัดหน้าจอให้ออกมาเป็นสไตล์โมบายเว็บ -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons: ไอคอนรูปต่างๆ เช่น ตะกร้าสินค้า, เครื่องหมายบวกลบ -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  
+  <style>
+    /* กฎการดีไซน์หน้าจอโดยเน้นรองรับมุมมองบน LINE LIFF (มือถือ) */
+    body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .category-btn { border-radius: 20px; transition: all 0.2s; }
+    .product-card { border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
+    .product-card:hover { transform: translateY(-3px); }
+    .product-img { height: 140px; object-fit: cover; background-color: #e9ecef; }
+    
+    /* แถบแจ้งยอดเงินด้านล่างสุดที่จะยึดติดหน้าจอ (Sticky) เมื่อมีสินค้าในตะกร้า */
+    .sticky-cart-bar { position: sticky; bottom: 0; background: white; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 1030; }
+    
+    /* ข้อมูลโพรไฟล์ผู้ใช้งานจำลองด้านบน */
+    .profile-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #28a745; }
+    
+    /* หน้าจอ Loading บังเต็มหน้าจอ (ป้องกันผู้ใช้กดย้ำตอนอัปโหลดสลิปไป Google Drive) */
+    .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       [2] HTML COMPONENTS (โครงสร้างหน้าจอ)
+       ========================================== -->
+
+  <!-- หน้าจอ Loading บังหน้าเว็บชั่วคราวขณะอัปโหลดข้อมูล -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner-border text-success" role="status"></div>
+    <span class="mt-2 fw-bold text-secondary">โหมดทดสอบ: กำลังจำลองการส่งข้อมูล (3 วินาที)...</span>
+  </div>
+
+  <!-- ส่วนหัวบนสุด (Header): แสดงข้อมูลบัญชีผู้ใช้ไลน์และชื่อร้านค้า -->
+  <div class="bg-white p-3 shadow-sm border-bottom">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <img id="userPicture" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop" alt="Profile" class="profile-img me-2">
+        <div>
+          <small class="text-muted d-block">ยินดีต้อนรับคุณ</small>
+          <strong id="userName" class="text-dark">พี่กั๊ก (Demo Account)</strong>
+        </div>
+      </div>
+      <span class="badge bg-success fs-6"><i class="bi bi-shop"></i> Minishop</span>
+    </div>
+  </div>
+
+  <!-- เนื้อหาหลัก (Main Content) -->
+  <div class="container py-3 mb-5">
+    <!-- แถบเลือกหมวดหมู่สินค้า (Category Filter) รองรับการสไลด์แนวนอนบนมือถือ -->
+    <div class="d-flex gap-2 overflow-x-auto pb-3" id="categoryContainer">
+      <button class="btn btn-success category-btn flex-shrink-0" onclick="filterCategory('All')">ทั้งหมด</button>
+      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Food')">อาหาร</button>
+      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Desert')">ของหวาน</button>
+      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Snack')">ของทานเล่น</button>
+      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Drink')">เครื่องดื่ม</button>
+    </div>
+
+    <!-- ส่วนจัดวางกล่องรายการอาหาร (Product Grid) -->
+    <h5 class="fw-bold mb-3 text-secondary" id="currentCategoryTitle">เมนูทั้งหมด</h5>
+    <div class="row g-3" id="productGrid">
+      <!-- รายการอาหารทั้งหมดจะถูกสร้างขึ้นมาวางตรงนี้โดยอัตโนมัติจากฝั่ง JavaScript -->
+    </div>
+  </div>
+
+  <!-- แถบสรุปเงินสรุปยอดเงินด้านล่างสุด (Sticky Cart Bar) ปกติจะซ่อนไว้ จะแสดงผลเมื่อยอดสินค้า > 0 -->
+  <div class="sticky-cart-bar p-3 border-top bg-white border-top border-2" id="cartBar" style="display: none;">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div>
+        <span class="text-muted small">รวมทั้งสิ้น</span>
+        <h4 class="fw-bold text-success mb-0" id="cartTotalSummary">0 ฿</h4>
+      </div>
+      <button class="btn btn-success btn-lg px-4 shadow" data-bs-toggle="modal" data-bs-target="#checkoutModal" onclick="renderCheckoutList()">
+        <i class="bi bi-credit-card-2-front"></i> ชำระเงิน
+      </button>
+    </div>
+  </div>
+
+  <!-- หน้าต่างป๊อปอัพยืนยันออเดอร์ (Checkout Modal) -->
+  <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="checkoutModalLabel"><i class="bi bi-cart-check"></i> ยืนยันการสั่งซื้อและชำระเงิน</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- พื้นที่แสดงสรุปเมนูในตะกร้าและปุ่มเพิ่มลดจำนวนชิ้น -->
+          <h6 class="fw-bold text-secondary mb-3">รายการอาหารที่สั่ง</h6>
+          <ul class="list-group list-group-flush mb-4" id="checkoutItemsList"></ul>
+          
+          <!-- ราคารวมสุทธิใน Modal -->
+          <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-4">
+            <span class="fw-bold">ยอดเงินสุทธิที่ต้องโอน:</span>
+            <h3 class="text-success fw-bold mb-0" id="modalCartTotal">0 ฿</h3>
+          </div>
+
+          <!-- ฟอร์มกรอกที่อยู่จัดส่งและไฟล์ภาพสลิปเงินโอน -->
+          <h6 class="fw-bold text-secondary mb-3">ข้อมูลสำหรับจัดส่ง</h6>
+          <form id="orderForm">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">ชื่อผู้รับ</label>
+              <input type="text" class="form-control" id="formName" required value="พี่กั๊ก (Demo Account)">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">เบอร์โทรศัพท์ติดต่อ</label>
+              <input type="tel" class="form-control" id="formTelephone" required placeholder="เช่น 0812345678">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">ที่อยู่จัดส่ง</label>
+              <textarea class="form-control" id="formAddress" rows="3" required placeholder="ระบุบ้านเลขที่ ซอย ถนน ตำบล อำเภอ จังหวัด"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-danger"><i class="bi bi-image"></i> อัปโหลดรูปภาพสลิปโอนเงิน</label>
+              <input type="file" class="form-control" id="formImage" accept="image/*" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-success px-4" onclick="submitOrder()">ส่งรายการสั่งซื้อ (จำลอง)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle: จำเป็นต้องใช้ควบคุมการเปิด/ปิดตัว Modal ป๊อปอัพ -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- ==========================================
+       [3] JAVASCRIPT LOGIC (ระบบการทำงาน)
+       ========================================== -->
+  <script>
+    /**
+     * [DATA STATE] ข้อมูลสินค้าจำลอง (Mockup Data)
+     * โครงสร้างคีย์จำลองหัวตารางมาจากคอลัมน์ใน Google Sheets เพื่อเวลานำไปเชื่อมต่อจริงจะได้ไม่ต้องรื้อโค้ดใหม่
+     */
+    const mockProducts = [
+      { "Item Name": "ไก่ทอดกรอบ (Chicken)", "Category": "Food", "Price": "89", "Image URL": "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&auto=format&fit=crop" },
+      { "Item Name": "ก๋วยเตี๋ยวเนื้อ (Beef Noodles)", "Category": "Food", "Price": "60", "Image URL": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&auto=format&fit=crop" },
+      { "Item Name": "สลัดผักไฮโดร (Salad)", "Category": "Food", "Price": "79", "Image URL": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&auto=format&fit=crop" },
+      { "Item Name": "ไอศกรีมซันเด (Ice Cream)", "Category": "Desert", "Price": "45", "Image URL": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&auto=format&fit=crop" },
+      { "Item Name": "เค้กช็อกโกแลต (Cake)", "Category": "Desert", "Price": "65", "Image URL": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&auto=format&fit=crop" },
+      { "Item Name": "เฟรนช์ฟรายส์ (French Fries)", "Category": "Snack", "Price": "50", "Image URL": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&auto=format&fit=crop" },
+      { "Item Name": "น้ำส้มคั้นสด (Orange Juice)", "Category": "Drink", "Price": "40", "Image URL": "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&auto=format&fit=crop" },
+      { "Item Name": "กาแฟเย็นดอยช้าง (Iced Coffee)", "Category": "Drink", "Price": "55", "Image URL": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&auto=format&fit=crop" }
+    ];
+    
+    // ตัวแปรส่วนกลางสำหรับเก็บข้อมูลสินค้าที่ลูกค้าเลือกใส่ตะกร้าปัจจุบัน (โครงสร้าง Object คีย์ด้วยชื่อสินค้า)
+    let cart = {};
+
+    // ทำงานอัตโนมัติเมื่อหน้าเว็บประมวลผลโครงสร้าง DOM เสร็จสิ้น
+    window.addEventListener('DOMContentLoaded', () => {
+      renderProducts(mockProducts);
+    });
+
+    /**
+     * [FUNCTION] renderProducts
+     * ทำหน้าที่: วนลูปอ่านข้อมูลสินค้าจากตัวแปรอาร์เรย์มาสร้างเป็นการ์ด HTML เพื่อแสดงผลบนหน้าจอ
+     */
+    function renderProducts(products) {
+      const grid = document.getElementById("productGrid");
+      grid.innerHTML = ""; // ล้างค่าหน้าจอก่อนวาดภาพใหม่ทุกครั้ง
+
+      products.forEach(item => {
+        const itemName = item["Item Name"];
+        const price = parseInt(item["Price"]);
+        const imgUrl = item["Image URL"];
+        
+        const cardHtml = `
+          <div class="col-6 col-md-4 col-lg-3">
+            <div class="card product-card h-100">
+              <img src="${imgUrl}" class="card-img-top product-img" alt="${itemName}">
+              <div class="card-body p-2 d-flex flex-column justify-content-between">
+                <div>
+                  <h6 class="card-title fw-bold text-dark mb-1 text-truncate" style="font-size: 0.95rem;">${itemName}</h6>
+                  <p class="text-success fw-bold mb-2 small">${price} ฿</p>
+                </div>
+                <button class="btn btn-sm btn-success w-100 rounded-pill" onclick="addToCart('${itemName}', ${price})">
+                  <i class="bi bi-plus-circle"></i> สั่งซื้อ
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        grid.insertAdjacentHTML('beforeend', cardHtml);
+      });
+    }
+
+    /**
+     * [FUNCTION] filterCategory
+     * ทำหน้าที่: จัดการคัดกรองรายการสินค้าตามปุ่มหมวดหมู่ที่ผู้ใช้งานกดเลือก
+     */
+    function filterCategory(categoryName) {
+      // รีเซ็ตสีของปุ่มหมวดหมู่ทั้งหมดให้กลายเป็นสีขาวขอบเขียว (btn-outline-success)ก่อน
+      const buttons = document.querySelectorAll('#categoryContainer button');
+      buttons.forEach(btn => btn.classList.replace('btn-success', 'btn-outline-success'));
+      
+      // ไฮไลต์ปุ่มที่ผู้ใช้กดคลิกเลือกให้กลายเป็นปุ่มสีเขียวเต็มตัว (btn-success)
+      event.currentTarget.classList.replace('btn-outline-success', 'btn-success');
+
+      if(categoryName === 'All') {
+        document.getElementById("currentCategoryTitle").innerText = "เมนูทั้งหมด";
+        renderProducts(mockProducts);
+      } else {
+        document.getElementById("currentCategoryTitle").innerText = `หมวดหมู่: ${categoryName}`;
+        // คัดกรองเอาเฉพาะออบเจกต์ที่มีค่าฟิลด์ตรงตามที่ระบุ
+        const filtered = mockProducts.filter(p => p["Category"] === categoryName);
+        renderProducts(filtered);
+      }
+    }
+
+    /**
+     * [FUNCTION] addToCart
+     * ทำหน้าที่: เพิ่มจำนวนชิ้นสินค้าเข้าสู่ตระกร้ากลาง (cart state) เมื่อผู้ใช้กดปุ่มสั่งซื้อ
+     */
+    function addToCart(name, price) {
+      if(cart[name]) {
+        cart[name].quantity += 1; // เพิ่มชิ้นถ้ามีเมนูเดิมอยู่แล้ว
+      } else {
+        cart[name] = { name: name, price: price, quantity: 1 }; // เพิ่มเมนูใหม่เข้าสู่กุญแจหลัก
+      }
+      updateCartBar();
+    }
+
+    /**
+     * [FUNCTION] changeQuantity
+     * ทำหน้าที่: บวกลบจำนวนชิ้นของแต่ละเมนูอาหารจากภายในหน้าต่างชำระเงินโดยตรง
+     */
+    function changeQuantity(name, amount) {
+      if(cart[name]) {
+        cart[name].quantity += amount;
+        if(cart[name].quantity <= 0) {
+          delete cart[name]; // ลบเมนูนี้ทิ้งไปจากออบเจกต์ทันทีหากสั่งเหลือ 0 ชิ้น
+        }
+        updateCartBar();
+        renderCheckoutList();
+      }
+    }
+
+    /**
+     * [FUNCTION] updateCartBar
+     * ทำหน้าที่: คำนวณราคารวมทั้งหมดของรายการอาหารในตระกร้าปัจจุบัน และควบคุมการเปิด/ปิดตัวแถบสรุปเงินด้านล่างหน้าจอ
+     */
+    function updateCartBar() {
+      const cartBar = document.getElementById("cartBar");
+      let total = 0;
+      let hasItems = false;
+
+      // ทำการวนลูปอ่านจำนวนเงินรวมของคีย์ข้อมูลแต่ละตัวภายในออบเจกต์
+      for (let key in cart) {
+        total += cart[key].price * cart[key].quantity;
+        hasItems = true;
+      }
+
+      // นำตัวเลขไปแสดงผลบน Element ต่างๆ
+      document.getElementById("cartTotalSummary").innerText = `${total} ฿`;
+      document.getElementById("modalCartTotal").innerText = `${total} ฿`;
+      
+      // หากมีสินค้าคงเหลือให้โชว์แถบสั่งสินค้าด้านล่าง (Display block) หากไม่มีเลยให้ซ่อนไว้ (Display none)
+      cartBar.style.display = hasItems ? "block" : "none";
+      
+      // กรณีถ้าสินค้าลดจนหมดเกลี้ยงในหน้า Modal ให้สั่งปิดหน้าต่างป๊อปอัพตัว Modal อัตโนมัติด้วย Bootstrap JS
+      if(!hasItems) {
+        const modalObj = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+        if(modalObj) modalObj.hide();
+      }
+    }
+
+    /**
+     * [FUNCTION] renderCheckoutList
+     * ทำหน้าที่: แปลงข้อมูลในตระกร้ามาเป็นแถบรายการสินค้าแบบรายการ (List Item) เพื่อแสดงสรุปในหน้าต่างยืนยันการโอนเงิน
+     */
+    function renderCheckoutList() {
+      const listContainer = document.getElementById("checkoutItemsList");
+      listContainer.innerHTML = "";
+
+      for(let key in cart) {
+        const item = cart[key];
+        const row = `
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <div>
+              <span class="fw-bold text-dark d-block">${item.name}</span>
+              <small class="text-muted">${item.price} ฿ x ${item.quantity}</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-bold text-success me-2">${item.price * item.quantity} ฿</span>
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-secondary" onclick="changeQuantity('${item.name}', -1)">-</button>
+                <button type="button" class="btn btn-light" disabled>${item.quantity}</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="changeQuantity('${item.name}', 1)">+</button>
+              </div>
+            </div>
+          </li>
+        `;
+        listContainer.insertAdjacentHTML('beforeend', row);
+      }
+    }
+
+    /**
+     * [FUNCTION] submitOrder (Demo Mode)
+     * ทำหน้าที่: ตรวจสอบความถูกต้องของข้อมูลฟอร์ม และจำลองสถานะการส่งข้อมูลโดยการตั้งเวลาถอยหลัง (setTimeout) 3 วินาที
+     * โน้ตสำหรับอนาคต: หากต่อยอดเข้าหน้างานจริง ให้เปลี่ยนชุดโค้ดหน่วงเวลาด้านล่างออก แล้วใช้คำสั่ง fetch(URL, {method: 'POST'}) ยิงส่ง JSON ข้อมูลจริงไปที่ Google Apps Script
+     */
+    function submitOrder() {
+      const tel = document.getElementById("formTelephone").value.trim();
+      const addr = document.getElementById("formAddress").value.trim();
+      const imgInput = document.getElementById("formImage");
+
+      // ตรวจสอบเช็กความสมบูรณ์ Validation ขั้นต้น
+      if(!tel || !addr || imgInput.files.length === 0) {
+        alert("โหมดทดสอบ: กรุณากรอกเบอร์โทร ที่อยู่ และจำลองอัปโหลดไฟล์รูปภาพให้ครบถ้วนก่อนกดส่งครับ");
+        return;
+      }
+
+      // สั่งปิดหน้าต่างยืนยันใบชำระเงินด้วย Bootstrap API
+      const modalObj = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+      if(modalObj) modalObj.hide();
+      
+      // ดึงหน้าต่าง Loading ออกมาแสดงผลเพื่อจำลองความสมจริง
+      document.getElementById("loadingOverlay").style.display = "flex";
+
+      // จำลองการใช้กระบวนการหน่วงเวลาประมวลผลเครือข่ายจำลอง 3000 มิลลิวินาที (3 วินาที) ก่อนรีเซ็ตค่า
+      setTimeout(() => {
+        document.getElementById("loadingOverlay").style.display = "none";
+        alert("โหมดทดสอบสำเร็จ! ระบบทำงานได้ถูกต้อง ไร้ปัญหากับ Bootstrap 5 JS");
+        
+        // เคลียร์ฟอร์มและตะกร้าเมื่อการส่งสิ้นสุดลงสำเร็จ
+        cart = {};
+        document.getElementById("orderForm").reset();
+        updateCartBar();
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
