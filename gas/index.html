@@ -3,63 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minishop - Demo UI (Commented Edition)</title>
-  
-  <!-- ==========================================
-       [1] CSS FRAMEWORKS & STYLES 
-       ========================================== -->
-  <!-- Bootstrap 5 CSS: ใช้ควบคุม Layout และการจัดหน้าจอให้ออกมาเป็นสไตล์โมบายเว็บ -->
+  <title>Minishop - ระบบสั่งอาหารออนไลน์</title>
+  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons: ไอคอนรูปต่างๆ เช่น ตะกร้าสินค้า, เครื่องหมายบวกลบ -->
+  <!-- LINE Font & Icons Options -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-  
   <style>
-    /* กฎการดีไซน์หน้าจอโดยเน้นรองรับมุมมองบน LINE LIFF (มือถือ) */
     body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .category-btn { border-radius: 20px; transition: all 0.2s; }
     .product-card { border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
     .product-card:hover { transform: translateY(-3px); }
     .product-img { height: 140px; object-fit: cover; background-color: #e9ecef; }
-    
-    /* แถบแจ้งยอดเงินด้านล่างสุดที่จะยึดติดหน้าจอ (Sticky) เมื่อมีสินค้าในตะกร้า */
+    .cart-badge { position: absolute; top: -5px; right: -5px; }
     .sticky-cart-bar { position: sticky; bottom: 0; background: white; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 1030; }
-    
-    /* ข้อมูลโพรไฟล์ผู้ใช้งานจำลองด้านบน */
     .profile-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #28a745; }
-    
-    /* หน้าจอ Loading บังเต็มหน้าจอ (ป้องกันผู้ใช้กดย้ำตอนอัปโหลดสลิปไป Google Drive) */
     .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; }
   </style>
 </head>
 <body>
 
-  <!-- ==========================================
-       [2] HTML COMPONENTS (โครงสร้างหน้าจอ)
-       ========================================== -->
-
-  <!-- หน้าจอ Loading บังหน้าเว็บชั่วคราวขณะอัปโหลดข้อมูล -->
+  <!-- Loading Overlay -->
   <div id="loadingOverlay" class="loading-overlay">
     <div class="spinner-border text-success" role="status"></div>
-    <span class="mt-2 fw-bold text-secondary">โหมดทดสอบ: กำลังจำลองการส่งข้อมูล (3 วินาที)...</span>
+    <span class="mt-2 fw-bold text-secondary">กำลังบันทึกออเดอร์ กรุณารอสักครู่...</span>
   </div>
 
-  <!-- ส่วนหัวบนสุด (Header): แสดงข้อมูลบัญชีผู้ใช้ไลน์และชื่อร้านค้า -->
+  <!-- Header & Profile -->
   <div class="bg-white p-3 shadow-sm border-bottom">
     <div class="container d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center">
-        <img id="userPicture" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop" alt="Profile" class="profile-img me-2">
+        <img id="userPicture" src="https://via.placeholder.com/45" alt="Profile" class="profile-img me-2">
         <div>
           <small class="text-muted d-block">ยินดีต้อนรับคุณ</small>
-          <strong id="userName" class="text-dark">พี่กั๊ก (Demo Account)</strong>
+          <strong id="userName" class="text-dark">Loading LINE Profile...</strong>
         </div>
       </div>
       <span class="badge bg-success fs-6"><i class="bi bi-shop"></i> Minishop</span>
     </div>
   </div>
 
-  <!-- เนื้อหาหลัก (Main Content) -->
   <div class="container py-3 mb-5">
-    <!-- แถบเลือกหมวดหมู่สินค้า (Category Filter) รองรับการสไลด์แนวนอนบนมือถือ -->
+    <!-- Category Filter Bar -->
     <div class="d-flex gap-2 overflow-x-auto pb-3" id="categoryContainer">
       <button class="btn btn-success category-btn flex-shrink-0" onclick="filterCategory('All')">ทั้งหมด</button>
       <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Food')">อาหาร</button>
@@ -68,14 +52,18 @@
       <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Drink')">เครื่องดื่ม</button>
     </div>
 
-    <!-- ส่วนจัดวางกล่องรายการอาหาร (Product Grid) -->
+    <!-- Product Grid -->
     <h5 class="fw-bold mb-3 text-secondary" id="currentCategoryTitle">เมนูทั้งหมด</h5>
     <div class="row g-3" id="productGrid">
-      <!-- รายการอาหารทั้งหมดจะถูกสร้างขึ้นมาวางตรงนี้โดยอัตโนมัติจากฝั่ง JavaScript -->
+      <!-- ข้อมูลเมนูอาหารจะโหลดจาก Open Sheet มาใส่ตรงนี้แบบ Dynamic -->
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="mt-2 text-muted">กำลังโหลดรายการอาหาร...</p>
+      </div>
     </div>
   </div>
 
-  <!-- แถบสรุปเงินสรุปยอดเงินด้านล่างสุด (Sticky Cart Bar) ปกติจะซ่อนไว้ จะแสดงผลเมื่อยอดสินค้า > 0 -->
+  <!-- Sticky Cart Bar (โผล่เมื่อมีการสั่งอาหาร) -->
   <div class="sticky-cart-bar p-3 border-top bg-white border-top border-2" id="cartBar" style="display: none;">
     <div class="container d-flex align-items-center justify-content-between">
       <div>
@@ -88,31 +76,30 @@
     </div>
   </div>
 
-  <!-- หน้าต่างป๊อปอัพยืนยันออเดอร์ (Checkout Modal) -->
+  <!-- Checkout & Payment Modal -->
   <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" id="checkoutModalLabel"><i class="bi bi-cart-check"></i> ยืนยันการสั่งซื้อและชำระเงิน</h5>
+          <h5 class="modal-title" id="checkoutModalLabel"><i class="bi bi-cart-check"></i> ยืนยันการสั่งซื้อและชำrateเงิน</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- พื้นที่แสดงสรุปเมนูในตะกร้าและปุ่มเพิ่มลดจำนวนชิ้น -->
+          <!-- สรุปรายการในตะกร้า -->
           <h6 class="fw-bold text-secondary mb-3">รายการอาหารที่สั่ง</h6>
           <ul class="list-group list-group-flush mb-4" id="checkoutItemsList"></ul>
           
-          <!-- ราคารวมสุทธิใน Modal -->
           <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-4">
             <span class="fw-bold">ยอดเงินสุทธิที่ต้องโอน:</span>
             <h3 class="text-success fw-bold mb-0" id="modalCartTotal">0 ฿</h3>
           </div>
 
-          <!-- ฟอร์มกรอกที่อยู่จัดส่งและไฟล์ภาพสลิปเงินโอน -->
+          <!-- ฟอร์มข้อมูลจัดส่ง -->
           <h6 class="fw-bold text-secondary mb-3">ข้อมูลสำหรับจัดส่ง</h6>
           <form id="orderForm">
             <div class="mb-3">
               <label class="form-label small fw-bold">ชื่อผู้รับ</label>
-              <input type="text" class="form-control" id="formName" required value="พี่กั๊ก (Demo Account)">
+              <input type="text" class="form-control" id="formName" required placeholder="กรุณากรอกชื่อผู้รับ">
             </div>
             <div class="mb-3">
               <label class="form-label small fw-bold">เบอร์โทรศัพท์ติดต่อ</label>
@@ -130,54 +117,87 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-          <button type="button" class="btn btn-success px-4" onclick="submitOrder()">ส่งรายการสั่งซื้อ (จำลอง)</button>
+          <button type="button" class="btn btn-success px-4" onclick="submitOrder()">ส่งรายการสั่งซื้อ</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Bootstrap 5 JS Bundle: จำเป็นต้องใช้ควบคุมการเปิด/ปิดตัว Modal ป๊อปอัพ -->
+  <!-- LINE LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- ==========================================
-       [3] JAVASCRIPT LOGIC (ระบบการทำงาน)
-       ========================================== -->
   <script>
-    /**
-     * [DATA STATE] ข้อมูลสินค้าจำลอง (Mockup Data)
-     * โครงสร้างคีย์จำลองหัวตารางมาจากคอลัมน์ใน Google Sheets เพื่อเวลานำไปเชื่อมต่อจริงจะได้ไม่ต้องรื้อโค้ดใหม่
-     */
-    const mockProducts = [
-      { "Item Name": "ไก่ทอดกรอบ (Chicken)", "Category": "Food", "Price": "89", "Image URL": "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&auto=format&fit=crop" },
-      { "Item Name": "ก๋วยเตี๋ยวเนื้อ (Beef Noodles)", "Category": "Food", "Price": "60", "Image URL": "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&auto=format&fit=crop" },
-      { "Item Name": "สลัดผักไฮโดร (Salad)", "Category": "Food", "Price": "79", "Image URL": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&auto=format&fit=crop" },
-      { "Item Name": "ไอศกรีมซันเด (Ice Cream)", "Category": "Desert", "Price": "45", "Image URL": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400&auto=format&fit=crop" },
-      { "Item Name": "เค้กช็อกโกแลต (Cake)", "Category": "Desert", "Price": "65", "Image URL": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&auto=format&fit=crop" },
-      { "Item Name": "เฟรนช์ฟรายส์ (French Fries)", "Category": "Snack", "Price": "50", "Image URL": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&auto=format&fit=crop" },
-      { "Item Name": "น้ำส้มคั้นสด (Orange Juice)", "Category": "Drink", "Price": "40", "Image URL": "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400&auto=format&fit=crop" },
-      { "Item Name": "กาแฟเย็นดอยช้าง (Iced Coffee)", "Category": "Drink", "Price": "55", "Image URL": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&auto=format&fit=crop" }
-    ];
+    // ================= CONFIGURATION =================
+    const LIFF_ID = "2010571291-GEEyPihZ"; // ใส่ LIFF ID ที่ได้จาก LINE Developer Console
+    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyg3QGRNkcXANO6VxKBsD-EdO3P-1-VvIK-2SH1zGjL96E-l21B0PziyqOKrNWXo_JO/exec"; // ลิงก์ exec ของ App Script ที่เราทำ doPos ไว้
+    const OPEN_SHEET_URL = "https://opensheet.elk.sh/1fxZ0mnfOiWNMuWtpRzS7LMTeuvmzENK9xMidVBh7pUY/products"; // ลิงก์ดึงข้อมูลสินค้าจาก Open Sheet
     
-    // ตัวแปรส่วนกลางสำหรับเก็บข้อมูลสินค้าที่ลูกค้าเลือกใส่ตะกร้าปัจจุบัน (โครงสร้าง Object คีย์ด้วยชื่อสินค้า)
+    // ================= STATE MANAGEMENT =================
+    let allProducts = [];
     let cart = {};
+    let lineUserUid = "";
+    let base64ImageStr = "";
 
-    // ทำงานอัตโนมัติเมื่อหน้าเว็บประมวลผลโครงสร้าง DOM เสร็จสิ้น
+    // ================= INITIALIZATION =================
     window.addEventListener('DOMContentLoaded', () => {
-      renderProducts(mockProducts);
+      initLiff();
+      loadProducts();
+      setupImageListener();
     });
 
-    /**
-     * [FUNCTION] renderProducts
-     * ทำหน้าที่: วนลูปอ่านข้อมูลสินค้าจากตัวแปรอาร์เรย์มาสร้างเป็นการ์ด HTML เพื่อแสดงผลบนหน้าจอ
-     */
+    // เริ่มการเชื่อมต่อ LINE LIFF
+    function initLiff() {
+      liff.init({ liffId: LIFF_ID })
+        .then(() => {
+          if (!liff.isLoggedIn()) {
+            liff.login();
+          } else {
+            liff.getProfile()
+              .then(profile => {
+                lineUserUid = profile.userId;
+                document.getElementById("userName").innerText = profile.displayName;
+                document.getElementById("formName").value = profile.displayName;
+                if(profile.pictureUrl) {
+                  document.getElementById("userPicture").src = profile.pictureUrl;
+                }
+              })
+              .catch(err => console.error("Error getting profile:", err));
+          }
+        })
+        .catch(err => console.error("LIFF Initialization failed", err));
+    }
+
+    // โหลดข้อมูลอาหารจากฐานข้อมูล Google Sheet ผ่าน Open Sheet API
+    function loadProducts() {
+      fetch(OPEN_SHEET_URL)
+        .then(res => res.json())
+        .then(data => {
+          allProducts = data;
+          renderProducts(allProducts);
+        })
+        .catch(err => {
+          console.error("Error loading products:", err);
+          document.getElementById("productGrid").innerHTML = '<div class="col-12 text-center text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูลเมนูอาหาร</div>';
+        });
+    }
+
+    // ================= RENDER FUNCTIONS =================
     function renderProducts(products) {
       const grid = document.getElementById("productGrid");
-      grid.innerHTML = ""; // ล้างค่าหน้าจอก่อนวาดภาพใหม่ทุกครั้ง
+      grid.innerHTML = "";
+
+      if(products.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-5">ไม่มีรายการอาหารในหมวดหมู่นี้</div>';
+        return;
+      }
 
       products.forEach(item => {
-        const itemName = item["Item Name"];
-        const price = parseInt(item["Price"]);
-        const imgUrl = item["Image URL"];
+        // อิงหัวคอลัมน์: Item Name, Category, Price, Image URL
+        const itemName = item["Item Name"] || item["ชื่อเมนู"];
+        const price = parseInt(item["Price"] || item["ราคา"]);
+        const imgUrl = item["Image URL"] || item["รูปภาพ"];
         
         const cardHtml = `
           <div class="col-6 col-md-4 col-lg-3">
@@ -185,7 +205,7 @@
               <img src="${imgUrl}" class="card-img-top product-img" alt="${itemName}">
               <div class="card-body p-2 d-flex flex-column justify-content-between">
                 <div>
-                  <h6 class="card-title fw-bold text-dark mb-1 text-truncate" style="font-size: 0.95rem;">${itemName}</h6>
+                  <h6 class="card-title fw-bold text-dark mb-1 text-truncate">${itemName}</h6>
                   <p class="text-success fw-bold mb-2 small">${price} ฿</p>
                 </div>
                 <button class="btn btn-sm btn-success w-100 rounded-pill" onclick="addToCart('${itemName}', ${price})">
@@ -199,96 +219,77 @@
       });
     }
 
-    /**
-     * [FUNCTION] filterCategory
-     * ทำหน้าที่: จัดการคัดกรองรายการสินค้าตามปุ่มหมวดหมู่ที่ผู้ใช้งานกดเลือก
-     */
+    // กรองเมนูตามหมวดหมู่สินค้า
     function filterCategory(categoryName) {
-      // รีเซ็ตสีของปุ่มหมวดหมู่ทั้งหมดให้กลายเป็นสีขาวขอบเขียว (btn-outline-success)ก่อน
+      // ปรับ UI สีปุ่มหมวดหมู่
       const buttons = document.querySelectorAll('#categoryContainer button');
       buttons.forEach(btn => btn.classList.replace('btn-success', 'btn-outline-success'));
       
-      // ไฮไลต์ปุ่มที่ผู้ใช้กดคลิกเลือกให้กลายเป็นปุ่มสีเขียวเต็มตัว (btn-success)
-      event.currentTarget.classList.replace('btn-outline-success', 'btn-success');
+      const activeBtn = event.currentTarget;
+      if(activeBtn) activeBtn.classList.replace('btn-outline-success', 'btn-success');
 
       if(categoryName === 'All') {
         document.getElementById("currentCategoryTitle").innerText = "เมนูทั้งหมด";
-        renderProducts(mockProducts);
+        renderProducts(allProducts);
       } else {
         document.getElementById("currentCategoryTitle").innerText = `หมวดหมู่: ${categoryName}`;
-        // คัดกรองเอาเฉพาะออบเจกต์ที่มีค่าฟิลด์ตรงตามที่ระบุ
-        const filtered = mockProducts.filter(p => p["Category"] === categoryName);
+        const filtered = allProducts.filter(p => p["Category"] === categoryName || p["หมวดหมู่"] === categoryName);
         renderProducts(filtered);
       }
     }
 
-    /**
-     * [FUNCTION] addToCart
-     * ทำหน้าที่: เพิ่มจำนวนชิ้นสินค้าเข้าสู่ตระกร้ากลาง (cart state) เมื่อผู้ใช้กดปุ่มสั่งซื้อ
-     */
+    // ================= CART SYSTEM (VANILLA JS) =================
     function addToCart(name, price) {
       if(cart[name]) {
-        cart[name].quantity += 1; // เพิ่มชิ้นถ้ามีเมนูเดิมอยู่แล้ว
+        cart[name].quantity += 1;
       } else {
-        cart[name] = { name: name, price: price, quantity: 1 }; // เพิ่มเมนูใหม่เข้าสู่กุญแจหลัก
+        cart[name] = { name: name, price: price, quantity: 1 };
       }
       updateCartBar();
     }
 
-    /**
-     * [FUNCTION] changeQuantity
-     * ทำหน้าที่: บวกลบจำนวนชิ้นของแต่ละเมนูอาหารจากภายในหน้าต่างชำระเงินโดยตรง
-     */
     function changeQuantity(name, amount) {
       if(cart[name]) {
         cart[name].quantity += amount;
         if(cart[name].quantity <= 0) {
-          delete cart[name]; // ลบเมนูนี้ทิ้งไปจากออบเจกต์ทันทีหากสั่งเหลือ 0 ชิ้น
+          delete cart[name];
         }
         updateCartBar();
         renderCheckoutList();
       }
     }
 
-    /**
-     * [FUNCTION] updateCartBar
-     * ทำหน้าที่: คำนวณราคารวมทั้งหมดของรายการอาหารในตระกร้าปัจจุบัน และควบคุมการเปิด/ปิดตัวแถบสรุปเงินด้านล่างหน้าจอ
-     */
     function updateCartBar() {
       const cartBar = document.getElementById("cartBar");
       let total = 0;
       let hasItems = false;
 
-      // ทำการวนลูปอ่านจำนวนเงินรวมของคีย์ข้อมูลแต่ละตัวภายในออบเจกต์
       for (let key in cart) {
         total += cart[key].price * cart[key].quantity;
         hasItems = true;
       }
 
-      // นำตัวเลขไปแสดงผลบน Element ต่างๆ
       document.getElementById("cartTotalSummary").innerText = `${total} ฿`;
       document.getElementById("modalCartTotal").innerText = `${total} ฿`;
       
-      // หากมีสินค้าคงเหลือให้โชว์แถบสั่งสินค้าด้านล่าง (Display block) หากไม่มีเลยให้ซ่อนไว้ (Display none)
-      cartBar.style.display = hasItems ? "block" : "none";
-      
-      // กรณีถ้าสินค้าลดจนหมดเกลี้ยงในหน้า Modal ให้สั่งปิดหน้าต่างป๊อปอัพตัว Modal อัตโนมัติด้วย Bootstrap JS
-      if(!hasItems) {
-        const modalObj = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+      if(hasItems) {
+        cartBar.style.display = "block";
+      } else {
+        cartBar.style.display = "none";
+        // ปิด Modal อัตโนมัติหากสินค้าโดนลบจนเกลี้ยง
+        const modalEl = document.getElementById('checkoutModal');
+        const modalObj = bootstrap.Modal.getInstance(modalEl);
         if(modalObj) modalObj.hide();
       }
     }
 
-    /**
-     * [FUNCTION] renderCheckoutList
-     * ทำหน้าที่: แปลงข้อมูลในตระกร้ามาเป็นแถบรายการสินค้าแบบรายการ (List Item) เพื่อแสดงสรุปในหน้าต่างยืนยันการโอนเงิน
-     */
     function renderCheckoutList() {
       const listContainer = document.getElementById("checkoutItemsList");
       listContainer.innerHTML = "";
 
       for(let key in cart) {
         const item = cart[key];
+        const itemTotal = item.price * item.quantity;
         const row = `
           <li class="list-group-item d-flex justify-content-between align-items-center px-0">
             <div>
@@ -296,7 +297,7 @@
               <small class="text-muted">${item.price} ฿ x ${item.quantity}</small>
             </div>
             <div class="d-flex align-items-center gap-2">
-              <span class="fw-bold text-success me-2">${item.price * item.quantity} ฿</span>
+              <span class="fw-bold text-success me-2">${itemTotal} ฿</span>
               <div class="btn-group btn-group-sm">
                 <button type="button" class="btn btn-outline-secondary" onclick="changeQuantity('${item.name}', -1)">-</button>
                 <button type="button" class="btn btn-light" disabled>${item.quantity}</button>
@@ -309,39 +310,84 @@
       }
     }
 
-    /**
-     * [FUNCTION] submitOrder (Demo Mode)
-     * ทำหน้าที่: ตรวจสอบความถูกต้องของข้อมูลฟอร์ม และจำลองสถานะการส่งข้อมูลโดยการตั้งเวลาถอยหลัง (setTimeout) 3 วินาที
-     * โน้ตสำหรับอนาคต: หากต่อยอดเข้าหน้างานจริง ให้เปลี่ยนชุดโค้ดหน่วงเวลาด้านล่างออก แล้วใช้คำสั่ง fetch(URL, {method: 'POST'}) ยิงส่ง JSON ข้อมูลจริงไปที่ Google Apps Script
-     */
+    // ================= IMAGE HANDLING & SUBMISSION =================
+    // ฟังการอัปโหลดไฟล์สลิปแล้วแปลงเป็น Base64
+    function setupImageListener() {
+      document.getElementById("formImage").addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          base64ImageStr = evt.target.result; // จะได้ดาต้า String รูปแบบ data:image/jpeg;base64,...
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ยิง API โพสต์ข้อมูลทั้งหมดส่งไปยัง Google Apps Script 後台
     function submitOrder() {
+      const name = document.getElementById("formName").value.trim();
       const tel = document.getElementById("formTelephone").value.trim();
       const addr = document.getElementById("formAddress").value.trim();
       const imgInput = document.getElementById("formImage");
 
-      // ตรวจสอบเช็กความสมบูรณ์ Validation ขั้นต้น
-      if(!tel || !addr || imgInput.files.length === 0) {
-        alert("โหมดทดสอบ: กรุณากรอกเบอร์โทร ที่อยู่ และจำลองอัปโหลดไฟล์รูปภาพให้ครบถ้วนก่อนกดส่งครับ");
+      // ตรวจสอบความสมบูรณ์ของฟอร์ม
+      if(!name || !tel || !addr || imgInput.files.length === 0) {
+        alert("กรุณากรอกข้อมูลส่วนตัวและอัปโหลดสลิปเงินโอนให้ครบถ้วนครับพี่กั๊ก");
         return;
       }
 
-      // สั่งปิดหน้าต่างยืนยันใบชำระเงินด้วย Bootstrap API
+      // ซ่อน Modal ยืนยัน และเปิด Overlay หน้าจอโหลดข้อมูล
       const modalObj = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
       if(modalObj) modalObj.hide();
-      
-      // ดึงหน้าต่าง Loading ออกมาแสดงผลเพื่อจำลองความสมจริง
       document.getElementById("loadingOverlay").style.display = "flex";
 
-      // จำลองการใช้กระบวนการหน่วงเวลาประมวลผลเครือข่ายจำลอง 3000 มิลลิวินาที (3 วินาที) ก่อนรีเซ็ตค่า
-      setTimeout(() => {
+      // แพ็กข้อมูลแปลง Array ตะกร้าสินค้า
+      const orderDetailsArray = [];
+      for(let key in cart) {
+        orderDetailsArray.push({
+          name: cart[key].name,
+          price: cart[key].price,
+          quantity: cart[key].quantity
+        });
+      }
+
+      const payload = {
+        lineUid: lineUserUid,
+        name: name,
+        telephone: tel,
+        address: addr,
+        image: base64ImageStr,
+        orderDetails: orderDetailsArray
+      };
+
+      // ยิงข้อมูลไป Apps Script แบบ POSTMethod
+      fetch(APP_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(result => {
         document.getElementById("loadingOverlay").style.display = "none";
-        alert("โหมดทดสอบสำเร็จ! ระบบทำงานได้ถูกต้อง ไร้ปัญหากับ Bootstrap 5 JS");
-        
-        // เคลียร์ฟอร์มและตะกร้าเมื่อการส่งสิ้นสุดลงสำเร็จ
-        cart = {};
-        document.getElementById("orderForm").reset();
-        updateCartBar();
-      }, 3000);
+        if(result.status === "success") {
+          alert("สั่งซื้อสำเร็จ! บันทึกข้อมูลเข้าฐานข้อมูลเรียบร้อยแล้ว");
+          // เคลียร์ค่าตัวแปรระบบ
+          cart = {};
+          base64ImageStr = "";
+          document.getElementById("orderForm").reset();
+          updateCartBar();
+          // สั่งปิดหน้าต่างหน้าเว็บ LINE LIFF ส่งผู้ใช้กลับห้องแชท
+          liff.closeWindow();
+        } else {
+          alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
+        }
+      })
+      .catch(error => {
+        document.getElementById("loadingOverlay").style.display = "none";
+        console.error("Error submitting order:", error);
+        alert("ระบบขัดข้องไม่สามารถติดต่อฐานข้อมูล Google Sheet ได้");
+      });
     }
   </script>
 </body>
