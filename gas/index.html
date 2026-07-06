@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,17 +10,71 @@
   <!-- LINE Font & Icons Options -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <style>
-    body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .category-btn { border-radius: 20px; transition: all 0.2s; }
-    .product-card { border: none; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
-    .product-card:hover { transform: translateY(-3px); }
-    .product-img { height: 140px; object-fit: cover; background-color: #e9ecef; }
-    .cart-badge { position: absolute; top: -5px; right: -5px; }
-    .sticky-cart-bar { position: sticky; bottom: 0; background: white; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 1030; }
-    .profile-img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #28a745; }
-    .loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction:column; }
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .category-btn {
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+
+    .product-card {
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .product-img {
+      height: 140px;
+      object-fit: cover;
+      background-color: #e9ecef;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+    }
+
+    .sticky-cart-bar {
+      position: sticky;
+      bottom: 0;
+      background: white;
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1030;
+    }
+
+    .profile-img {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      border: 2px solid #28a745;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- Loading Overlay -->
@@ -45,11 +100,7 @@
   <div class="container py-3 mb-5">
     <!-- Category Filter Bar -->
     <div class="d-flex gap-2 overflow-x-auto pb-3" id="categoryContainer">
-      <button class="btn btn-success category-btn flex-shrink-0" onclick="filterCategory('All')">ทั้งหมด</button>
-      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Food')">อาหาร</button>
-      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Desert')">ของหวาน</button>
-      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Snack')">ของทานเล่น</button>
-      <button class="btn btn-outline-success category-btn flex-shrink-0" onclick="filterCategory('Drink')">เครื่องดื่ม</button>
+      <!-- ปุ่มหมวดหมู่จะถูกสร้างอัตโนมัติจากข้อมูลใน Google Sheet -->
     </div>
 
     <!-- Product Grid -->
@@ -81,14 +132,14 @@
     <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" id="checkoutModalLabel"><i class="bi bi-cart-check"></i> ยืนยันการสั่งซื้อและชำrateเงิน</h5>
+          <h5 class="modal-title" id="checkoutModalLabel"><i class="bi bi-cart-check"></i> ยืนยันการสั่งซื้อและชำระเงิน</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <!-- สรุปรายการในตะกร้า -->
           <h6 class="fw-bold text-secondary mb-3">รายการอาหารที่สั่ง</h6>
           <ul class="list-group list-group-flush mb-4" id="checkoutItemsList"></ul>
-          
+
           <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-4">
             <span class="fw-bold">ยอดเงินสุทธิที่ต้องโอน:</span>
             <h3 class="text-success fw-bold mb-0" id="modalCartTotal">0 ฿</h3>
@@ -104,14 +155,6 @@
             <div class="mb-3">
               <label class="form-label small fw-bold">เบอร์โทรศัพท์ติดต่อ</label>
               <input type="tel" class="form-control" id="formTelephone" required placeholder="เช่น 0812345678">
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold">ที่อยู่จัดส่ง</label>
-              <textarea class="form-control" id="formAddress" rows="3" required placeholder="ระบุบ้านเลขที่ ซอย ถนน ตำบล อำเภอ จังหวัด"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-danger"><i class="bi bi-image"></i> อัปโหลดรูปภาพสลิปโอนเงิน</label>
-              <input type="file" class="form-control" id="formImage" accept="image/*" required>
             </div>
           </form>
         </div>
@@ -130,10 +173,10 @@
 
   <script>
     // ================= CONFIGURATION =================
-    const LIFF_ID = "2010571291-GEEyPihZ"; // ใส่ LIFF ID ที่ได้จาก LINE Developer Console
-    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyg3QGRNkcXANO6VxKBsD-EdO3P-1-VvIK-2SH1zGjL96E-l21B0PziyqOKrNWXo_JO/exec"; // ลิงก์ exec ของ App Script ที่เราทำ doPos ไว้
-    const OPEN_SHEET_URL = "https://opensheet.elk.sh/1fxZ0mnfOiWNMuWtpRzS7LMTeuvmzENK9xMidVBh7pUY/products"; // ลิงก์ดึงข้อมูลสินค้าจาก Open Sheet
-    
+    const LIFF_ID = "2010571291-GEEyPihZ"; 
+    const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxobrJ-ZAw8FDzDOQde2HlapZ7fyAwNqrV7aXqJPN3fBvvExG3988lv3Favb0fnklKu/exec"; 
+    const OPEN_SHEET_URL = "https://opensheet.elk.sh/1fxZ0mnfOiWNMuWtpRzS7LMTeuvmzENK9xMidVBh7pUY/products"; 
+
     // ================= STATE MANAGEMENT =================
     let allProducts = [];
     let cart = {};
@@ -144,7 +187,6 @@
     window.addEventListener('DOMContentLoaded', () => {
       initLiff();
       loadProducts();
-      setupImageListener();
     });
 
     // เริ่มการเชื่อมต่อ LINE LIFF
@@ -159,7 +201,7 @@
                 lineUserUid = profile.userId;
                 document.getElementById("userName").innerText = profile.displayName;
                 document.getElementById("formName").value = profile.displayName;
-                if(profile.pictureUrl) {
+                if (profile.pictureUrl) {
                   document.getElementById("userPicture").src = profile.pictureUrl;
                 }
               })
@@ -175,6 +217,7 @@
         .then(res => res.json())
         .then(data => {
           allProducts = data;
+          renderCategoryButtons();
           renderProducts(allProducts);
         })
         .catch(err => {
@@ -188,17 +231,16 @@
       const grid = document.getElementById("productGrid");
       grid.innerHTML = "";
 
-      if(products.length === 0) {
+      if (products.length === 0) {
         grid.innerHTML = '<div class="col-12 text-center text-muted py-5">ไม่มีรายการอาหารในหมวดหมู่นี้</div>';
         return;
       }
 
       products.forEach(item => {
-        // อิงหัวคอลัมน์: Item Name, Category, Price, Image URL
         const itemName = item["Item Name"] || item["ชื่อเมนู"];
         const price = parseInt(item["Price"] || item["ราคา"]);
         const imgUrl = item["Image URL"] || item["รูปภาพ"];
-        
+
         const cardHtml = `
           <div class="col-6 col-md-4 col-lg-3">
             <div class="card product-card h-100">
@@ -219,28 +261,62 @@
       });
     }
 
-    // กรองเมนูตามหมวดหมู่สินค้า
-    function filterCategory(categoryName) {
-      // ปรับ UI สีปุ่มหมวดหมู่
+    function renderCategoryButtons() {
+      const container = document.getElementById("categoryContainer");
+      container.innerHTML = "";
+
+      const allBtn = document.createElement("button");
+      allBtn.className = "btn btn-success category-btn flex-shrink-0";
+      allBtn.textContent = "ทั้งหมด";
+      allBtn.onclick = function () { filterCategory('All', this); };
+      container.appendChild(allBtn);
+
+      const seen = new Map();
+      allProducts.forEach(item => {
+        const raw = item["Category"] || item["หมวดหมู่"];
+        if (!raw) return;
+        const key = String(raw).trim().toLowerCase();
+        if (!key) return;
+        if (!seen.has(key)) {
+          seen.set(key, String(raw).trim());
+        }
+      });
+
+      const categories = Array.from(seen.values()).sort((a, b) => a.localeCompare(b, "th"));
+
+      categories.forEach(label => {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-outline-success category-btn flex-shrink-0";
+        btn.textContent = label;
+        btn.dataset.category = label;
+        btn.onclick = function () { filterCategory(label, this); };
+        container.appendChild(btn);
+      });
+    }
+
+    function filterCategory(categoryName, clickedBtn) {
       const buttons = document.querySelectorAll('#categoryContainer button');
       buttons.forEach(btn => btn.classList.replace('btn-success', 'btn-outline-success'));
-      
-      const activeBtn = event.currentTarget;
-      if(activeBtn) activeBtn.classList.replace('btn-outline-success', 'btn-success');
 
-      if(categoryName === 'All') {
+      if (clickedBtn) clickedBtn.classList.replace('btn-outline-success', 'btn-success');
+
+      if (categoryName === 'All') {
         document.getElementById("currentCategoryTitle").innerText = "เมนูทั้งหมด";
         renderProducts(allProducts);
       } else {
         document.getElementById("currentCategoryTitle").innerText = `หมวดหมู่: ${categoryName}`;
-        const filtered = allProducts.filter(p => p["Category"] === categoryName || p["หมวดหมู่"] === categoryName);
+        const target = String(categoryName).trim().toLowerCase();
+        const filtered = allProducts.filter(p => {
+          const cat = String(p["Category"] || p["หมวดหมู่"] || "").trim().toLowerCase();
+          return cat === target;
+        });
         renderProducts(filtered);
       }
     }
 
     // ================= CART SYSTEM (VANILLA JS) =================
     function addToCart(name, price) {
-      if(cart[name]) {
+      if (cart[name]) {
         cart[name].quantity += 1;
       } else {
         cart[name] = { name: name, price: price, quantity: 1 };
@@ -249,9 +325,9 @@
     }
 
     function changeQuantity(name, amount) {
-      if(cart[name]) {
+      if (cart[name]) {
         cart[name].quantity += amount;
-        if(cart[name].quantity <= 0) {
+        if (cart[name].quantity <= 0) {
           delete cart[name];
         }
         updateCartBar();
@@ -271,15 +347,14 @@
 
       document.getElementById("cartTotalSummary").innerText = `${total} ฿`;
       document.getElementById("modalCartTotal").innerText = `${total} ฿`;
-      
-      if(hasItems) {
+
+      if (hasItems) {
         cartBar.style.display = "block";
       } else {
         cartBar.style.display = "none";
-        // ปิด Modal อัตโนมัติหากสินค้าโดนลบจนเกลี้ยง
         const modalEl = document.getElementById('checkoutModal');
         const modalObj = bootstrap.Modal.getInstance(modalEl);
-        if(modalObj) modalObj.hide();
+        if (modalObj) modalObj.hide();
       }
     }
 
@@ -287,7 +362,7 @@
       const listContainer = document.getElementById("checkoutItemsList");
       listContainer.innerHTML = "";
 
-      for(let key in cart) {
+      for (let key in cart) {
         const item = cart[key];
         const itemTotal = item.price * item.quantity;
         const row = `
@@ -310,42 +385,22 @@
       }
     }
 
-    // ================= IMAGE HANDLING & SUBMISSION =================
-    // ฟังการอัปโหลดไฟล์สลิปแล้วแปลงเป็น Base64
-    function setupImageListener() {
-      document.getElementById("formImage").addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          base64ImageStr = evt.target.result; // จะได้ดาต้า String รูปแบบ data:image/jpeg;base64,...
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // ยิง API โพสต์ข้อมูลทั้งหมดส่งไปยัง Google Apps Script 後台
+    // ยิง API โพสต์ข้อมูลทั้งหมดส่งไปยัง Google Apps Script หลังบ้าน
     function submitOrder() {
       const name = document.getElementById("formName").value.trim();
       const tel = document.getElementById("formTelephone").value.trim();
-      const addr = document.getElementById("formAddress").value.trim();
-      const imgInput = document.getElementById("formImage");
 
-      // ตรวจสอบความสมบูรณ์ของฟอร์ม
-      if(!name || !tel || !addr || imgInput.files.length === 0) {
-        alert("กรุณากรอกข้อมูลส่วนตัวและอัปโหลดสลิปเงินโอนให้ครบถ้วนครับพี่กั๊ก");
+      if (!name || !tel) {
+        alert("กรุณากรอกชื่อและเบอร์โทรศัพท์");
         return;
       }
 
-      // ซ่อน Modal ยืนยัน และเปิด Overlay หน้าจอโหลดข้อมูล
       const modalObj = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
-      if(modalObj) modalObj.hide();
+      if (modalObj) modalObj.hide();
       document.getElementById("loadingOverlay").style.display = "flex";
 
-      // แพ็กข้อมูลแปลง Array ตะกร้าสินค้า
       const orderDetailsArray = [];
-      for(let key in cart) {
+      for (let key in cart) {
         orderDetailsArray.push({
           name: cart[key].name,
           price: cart[key].price,
@@ -357,38 +412,75 @@
         lineUid: lineUserUid,
         name: name,
         telephone: tel,
-        address: addr,
-        image: base64ImageStr,
         orderDetails: orderDetailsArray
       };
 
-      // ยิงข้อมูลไป Apps Script แบบ POSTMethod
       fetch(APP_SCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify(payload)
       })
-      .then(res => res.json())
-      .then(result => {
-        document.getElementById("loadingOverlay").style.display = "none";
-        if(result.status === "success") {
-          alert("สั่งซื้อสำเร็จ! บันทึกข้อมูลเข้าฐานข้อมูลเรียบร้อยแล้ว");
-          // เคลียร์ค่าตัวแปรระบบ
-          cart = {};
-          base64ImageStr = "";
-          document.getElementById("orderForm").reset();
-          updateCartBar();
-          // สั่งปิดหน้าต่างหน้าเว็บ LINE LIFF ส่งผู้ใช้กลับห้องแชท
-          liff.closeWindow();
-        } else {
-          alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
-        }
-      })
-      .catch(error => {
-        document.getElementById("loadingOverlay").style.display = "none";
-        console.error("Error submitting order:", error);
-        alert("ระบบขัดข้องไม่สามารถติดต่อฐานข้อมูล Google Sheet ได้");
-      });
+        .then(res => res.json())
+        .then(result => {
+          document.getElementById("loadingOverlay").style.display = "none";
+          if (result.status === "success") {
+            
+            // [แก้ไขลอจิก] ตรวจสอบสิทธิ์ LINE และสร้างข้อความสรุปก่อนที่จะเคลียร์ค่าตัวแปรในตะกร้า (cart)
+            if (liff.isApiAvailable('shareTargetPicker') || liff.isInClient()) {
+
+              let orderSummaryText = `🛒 มีรายการสั่งซื้อใหม่เข้ามาครับ!\n`;
+              orderSummaryText += `👤 คุณ: ${name}\n`;
+              orderSummaryText += `📞 เบอร์โทร: ${tel}\n`;
+              orderSummaryText += `------------------------\n`;
+
+              for (let key in cart) {
+                orderSummaryText += `- ${cart[key].name} (${cart[key].price}฿) x ${cart[key].quantity}\n`;
+              }
+              orderSummaryText += `------------------------\n`;
+              orderSummaryText += `💰 ยอดรวมทั้งสิ้น: ${document.getElementById("cartTotalSummary").innerText}`;
+
+              liff.sendMessages([
+                {
+                  type: 'text',
+                  text: orderSummaryText
+                }
+              ])
+                .then(() => {
+                  console.log("ส่งข้อความเข้าแชทไลน์สำเร็จ");
+                  // ย้ายการเคลียร์ตระกร้าและปิดหน้าต่างมาไว้ตรงนี้ เพื่อป้องกันข้อมูลว่าง
+                  clearCartAndForm();
+                  liff.closeWindow();
+                })
+                .catch((err) => {
+                  console.error("เกิดข้อผิดพลาดในการส่งข้อความ:", err);
+                  alert("บันทึกออเดอร์แล้ว แต่ไม่สามารถส่งข้อความเข้าแชทได้");
+                  clearCartAndForm();
+                  liff.closeWindow();
+                });
+
+            } else {
+              alert("สั่งซื้อสำเร็จ! บันทึกข้อมูลเข้าฐานข้อมูลเรียบร้อยแล้ว");
+              clearCartAndForm();
+              liff.closeWindow();
+            }
+          } else {
+            alert("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
+          }
+        })
+        .catch(error => {
+          document.getElementById("loadingOverlay").style.display = "none";
+          console.error("Error submitting order:", error);
+          alert("ระบบขัดข้องไม่สามารถติดต่อฐานข้อมูล Google Sheet ได้");
+        });
+    }
+
+    // ฟังก์ชันเสริมสำหรับล้างข้อมูลตะกร้าหน้าเว็บหลังทำรายการเสร็จ
+    function clearCartAndForm() {
+      cart = {};
+      base64ImageStr = "";
+      document.getElementById("orderForm").reset();
+      updateCartBar();
     }
   </script>
 </body>
+
 </html>
