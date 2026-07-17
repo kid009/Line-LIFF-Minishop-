@@ -38,6 +38,13 @@
       background-color: #e9ecef;
     }
 
+    .product-img-horizontal {
+      height: 100px;
+      object-fit: cover;
+      width: 100%;
+      background-color: #e9ecef;
+    }
+
     .cart-badge {
       position: absolute;
       top: -5px;
@@ -242,17 +249,23 @@
         const imgUrl = item["Image URL"] || item["รูปภาพ"];
 
         const cardHtml = `
-          <div class="col-6 col-md-4 col-lg-3">
-            <div class="card product-card h-100">
-              <img src="${imgUrl}" class="card-img-top product-img" alt="${itemName}">
-              <div class="card-body p-2 d-flex flex-column justify-content-between">
-                <div>
-                  <h6 class="card-title fw-bold text-dark mb-1 text-truncate">${itemName}</h6>
-                  <p class="text-success fw-bold mb-2 small">${price} ฿</p>
+          <div class="col-12">
+            <div class="card product-card">
+              <div class="row g-0 align-items-center">
+                <div class="col-4">
+                  <img src="${imgUrl}" class="img-fluid rounded-start product-img-horizontal" alt="${itemName}">
                 </div>
-                <button class="btn btn-sm btn-success w-100 rounded-pill" onclick="addToCart('${itemName}', ${price})">
-                  <i class="bi bi-plus-circle"></i> สั่งซื้อ
-                </button>
+                <div class="col-8">
+                  <div class="card-body p-2 d-flex flex-column justify-content-between h-100">
+                    <div>
+                      <h6 class="card-title fw-bold text-dark mb-1">${itemName}</h6>
+                      <p class="text-success fw-bold mb-2 small">${price} ฿</p>
+                    </div>
+                    <button class="btn btn-sm btn-success w-100 rounded-pill" onclick="addToCart('${itemName}', ${price})">
+                      <i class="bi bi-plus-circle"></i> สั่งซื้อ
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
